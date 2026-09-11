@@ -2,7 +2,7 @@ use crate::domain::ScrapedProduct;
 use crate::ports::ProductStorage;
 use anyhow::Result;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read, Write};
 
 pub struct JsonFileStorage {
     file_path: String,
@@ -23,5 +23,13 @@ impl ProductStorage for JsonFileStorage {
         file.write_all(json_data.as_bytes())?;
         println!("✅ Successfully saved {} products to '{}'", products.len(), self.file_path);
         Ok(())
+    }
+
+    fn load_all(&self) -> Result<Vec<ScrapedProduct>> {
+        let mut file = File::open(&self.file_path)?;
+        let mut content = String::new();
+        file.read_to_string(&mut content)?;
+        let products: Vec<ScrapedProduct> = serde_json::from_str(&content)?;
+        Ok(products)
     }
 }

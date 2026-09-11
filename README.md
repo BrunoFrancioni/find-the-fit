@@ -94,41 +94,24 @@ find-the-fit/
 
 ## 🚀 Current Status & Roadmap
 
-- [x] Phase 1: Project Setup & Scraping CLI
-
-    - [x] Monorepo workspace initialization with Rust and Next.js.
-
-    - [x] Hexagonal architecture implementation for tools/scraper.
-
-    - [x] Tienda Nube and Shopify CSS selector adapters configured.
-
-    - [x] Local JSON export pipeline verified.
-
-- [ ] Phase 2: Vectorization & Embeddings Pipeline
-
-    - [ ] AWS Bedrock integration (aws-sdk-bedrockruntime).
-
-    - [ ] Text-to-vector embedding conversion.
-
-    - [ ] Vector database ingestion setup.
-
-- [ ] Phase 3: Search Engine API
-
-    - [ ] Rust API implementation with Hybrid Search (Lexical + Vector).
-
-    - [ ] Redis caching layer for queries.
-
-- [ ] Phase 4: Frontend Development
-
-    - [ ] Clean Architecture React UI in Next.js.
-
-    - [ ] Instant search filtering.
-
-- [ ] Phase 5: Cloud Deployment
-
-    - [ ] Serverless deployment to AWS Lambda via API Gateway.
-
-    - [ ] Continuous Integration & Continuous Delivery (CI/CD).
+- [x] **Phase 1: Project Setup & Scraping CLI**
+  - [x] Monorepo workspace initialization with Rust and Next.js.
+  - [x] Hexagonal architecture implementation for `tools/scraper`.
+  - [x] Tienda Nube and Shopify CSS selector adapters configured.
+  - [x] Local JSON export pipeline verified.
+- [x] **Phase 2: Vectorization & Embeddings Pipeline**
+  - [x] AWS Bedrock integration (`aws-sdk-bedrockruntime`) with exponential backoff retries.
+  - [x] Dual-provider architecture: Pluggable AWS Bedrock (`Titan Text Embeddings V2`) and Local Deterministic Mock provider for decoupled local development.
+  - [x] Qdrant Vector Database ingestion with Cosine distance indexing (via Docker).
+- [ ] **Phase 3: Search Engine API**
+  - [ ] Rust API implementation with Hybrid Search (Lexical + Vector).
+  - [ ] Redis caching layer for queries.
+- [ ] **Phase 4: Frontend Development**
+  - [ ] Clean Architecture React UI in Next.js.
+  - [ ] Instant search filtering.
+- [ ] **Phase 5: Cloud Deployment**
+  - [ ] Serverless deployment to AWS Lambda via API Gateway.
+  - [ ] Continuous Integration & Continuous Delivery (CI/CD).
 
 ## 🛠️ Getting Started (Local Development)
 

@@ -9,3 +9,10 @@ pub struct ScrapedProduct {
     pub image_url: String,
     pub store_name: String,
 }
+
+/// Represents a product alongside its mathematical vector embedding
+#[derive(Debug, Clone)]
+pub struct VectorizedProduct {
+    pub product: ScrapedProduct,
+    pub vector: Vec<f32>,
+}
