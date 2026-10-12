@@ -25,8 +25,8 @@ async fn main() -> anyhow::Result<()> {
 
     // 1. Scraping execution
     let tienda_nube_scraper =
-        ECommerceScraper::new("TiendaNube Brand", StoreSelectorConfig::tienda_nube());
-    let url_tienda_nube = "https://www.taverniti.com.ar/hombre/buzos";
+        ECommerceScraper::new("Taverniti", StoreSelectorConfig::tienda_nube());
+    let url_tienda_nube = "https://www.taverniti.com.ar/hombre/";
 
     println!("🔎 Scraping Tienda Nube store: {}...", url_tienda_nube);
     if let Ok(items) = tienda_nube_scraper.scrape(url_tienda_nube).await {
@@ -34,11 +34,11 @@ async fn main() -> anyhow::Result<()> {
         products.extend(items);
     }
 
-    let shopify_scraper = ECommerceScraper::new("Shopify Brand", StoreSelectorConfig::shopify());
-    let url_shopify = "https://www.bowen.com.ar/collections/sweatshirts-hoodies";
+    let magento_scraper = ECommerceScraper::new("Bowen", StoreSelectorConfig::magento());
+    let url_magento = "https://bowen.com.ar/ss-27/buzos.html";
 
-    println!("🔎 Scraping Shopify store: {}...", url_shopify);
-    if let Ok(items) = shopify_scraper.scrape(url_shopify).await {
+    println!("🔎 Scraping Magento store: {}...", url_magento);
+    if let Ok(items) = magento_scraper.scrape(url_magento).await {
         println!("   └─ ✅ Found {} products.", items.len());
         products.extend(items);
     }

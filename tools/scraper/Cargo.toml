@@ -18,4 +18,4 @@ aws-config = { version = "1.5", features = ["behavior-version-latest"] }
 aws-sdk-bedrockruntime = "1.34"
 
 # Qdrant Vector DB Client
-qdrant-client = "1.10"
+qdrant-client = "1.19"

@@ -17,7 +17,7 @@ async-trait = "0.1"
 dotenvy = "0.15"
 
 # Vector Database Client
-qdrant-client = "1.10"
+qdrant-client = "1.19"
 
 # Redis Client
 redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }

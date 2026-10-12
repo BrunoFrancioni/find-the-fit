@@ -5,6 +5,7 @@ use qdrant_client::Payload;
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{
     CreateCollectionBuilder, Distance, PointStruct, UpsertPointsBuilder, VectorParamsBuilder,
+    Vectors, vectors::VectorsOptions,
 };
 use serde_json::json;
 
@@ -42,6 +43,15 @@ impl VectorDatabasePort for QdrantVectorDbAdapter {
         let mut points = Vec::new();
 
         for (idx, item) in items.iter().enumerate() {
+            if item.vector.len() != 1024 {
+                eprintln!(
+                    "⚠️ Skipping item '{}': expected vector length 1024, got {}",
+                    item.product.title,
+                    item.vector.len()
+                );
+                continue;
+            }
+
             let payload = json!({
                 "product_id": item.product.id,
                 "title": item.product.title,
@@ -53,20 +63,26 @@ impl VectorDatabasePort for QdrantVectorDbAdapter {
 
             let qdrant_payload: Payload = Payload::try_from(payload)?;
 
-            points.push(PointStruct::new(
-                idx as u64 + 1,
-                item.vector.clone(),
-                qdrant_payload,
-            ));
+            // Explicitly build dense vector to prevent empty vector serialization
+            let vectors = Vectors {
+                vectors_options: Some(VectorsOptions::Vector(item.vector.clone().into())),
+            };
+
+            points.push(PointStruct::new(idx as u64 + 1, vectors, qdrant_payload));
         }
 
+        if points.is_empty() {
+            return Err(anyhow::anyhow!("No valid vectors to upsert into Qdrant"));
+        }
+
+        let points_count = points.len();
         self.client
-            .upsert_points(UpsertPointsBuilder::new(&self.collection_name, points))
+            .upsert_points(UpsertPointsBuilder::new(&self.collection_name, points).wait(true))
             .await?;
 
         println!(
             "✅ Successfully indexed {} vectors into Qdrant",
-            items.len()
+            points_count
         );
         Ok(())
     }

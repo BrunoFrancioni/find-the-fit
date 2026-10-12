@@ -1,7 +1,9 @@
 use crate::domain::ScrapedProduct;
 use anyhow::Result;
+use reqwest::Url;
 use reqwest::header::USER_AGENT;
 use scraper::{Html, Selector};
+use std::collections::HashSet;
 
 /// Selector configuration structure to adapt HTML parsing across different e-commerce layouts
 pub struct StoreSelectorConfig {
@@ -25,6 +27,7 @@ impl StoreSelectorConfig {
     }
 
     /// Standard selectors for e-commerce platforms based on Shopify
+    #[allow(dead_code)]
     pub fn shopify() -> Self {
         Self {
             product_card: ".product-card, .grid-view-item, .card-wrapper",
@@ -32,6 +35,17 @@ impl StoreSelectorConfig {
             price: ".price-item--sale, .price-item--regular",
             image: ".product-card__image, .card__media img",
             link: "a.product-card__link, a.full-unstyled-link",
+        }
+    }
+
+    /// Standard selectors for e-commerce platforms based on Magento 2
+    pub fn magento() -> Self {
+        Self {
+            product_card: ".product-item-info",
+            title: ".product-item-link",
+            price: "[data-price-type='finalPrice'] .price",
+            image: "img.product-image-photo",
+            link: "a.product-item-link",
         }
     }
 }
@@ -63,6 +77,7 @@ impl ECommerceScraper {
             .text()
             .await?;
 
+        let base_url = Url::parse(target_url)?;
         let document = Html::parse_document(&response);
 
         // Compile CSS selectors
@@ -78,6 +93,9 @@ impl ECommerceScraper {
             .map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
 
         let mut products = Vec::new();
+        // Card selectors may match nested wrappers of the same product (e.g. Tienda Nube's
+        // `.item-product` > `.js-product-container`), so products are deduplicated by URL.
+        let mut seen_urls = HashSet::new();
 
         for element in document.select(&card_sel) {
             // Extract title
@@ -101,7 +119,7 @@ impl ECommerceScraper {
                 .select(&img_sel)
                 .next()
                 .and_then(|e| e.value().attr("src").or_else(|| e.value().attr("data-src")))
-                .map(format_url)
+                .and_then(|src| resolve_url(&base_url, src))
                 .unwrap_or_default();
 
             // Extract product URL
@@ -109,10 +127,10 @@ impl ECommerceScraper {
                 .select(&link_sel)
                 .next()
                 .and_then(|e| e.value().attr("href"))
-                .map(format_url)
+                .and_then(|href| resolve_url(&base_url, href))
                 .unwrap_or_else(|| target_url.to_string());
 
-            if !title.is_empty() && price > 0.0 {
+            if !title.is_empty() && price > 0.0 && seen_urls.insert(product_url.clone()) {
                 products.push(ScrapedProduct {
                     id: format!(
                         "{}-{}",
@@ -144,13 +162,7 @@ fn clean_price(raw: &str) -> f64 {
     clean_str.parse::<f64>().unwrap_or(0.0)
 }
 
-/// Helper function to normalize relative URLs (e.g., "//cdn..." or "/products/...")
-fn format_url(url: &str) -> String {
-    if url.starts_with("//") {
-        format!("https:{}", url)
-    } else if url.starts_with('/') {
-        format!("https://{}", url)
-    } else {
-        url.to_string()
-    }
+/// Helper function to resolve relative URLs (e.g., "//cdn..." or "/products/...") against the page URL
+fn resolve_url(base: &Url, url: &str) -> Option<String> {
+    base.join(url).ok().map(String::from)
 }
