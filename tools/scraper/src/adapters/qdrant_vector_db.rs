@@ -1,12 +1,12 @@
+use crate::domain::VectorizedProduct;
+use crate::ports::VectorDatabasePort;
 use anyhow::Result;
+use qdrant_client::Payload;
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{
     CreateCollectionBuilder, Distance, PointStruct, UpsertPointsBuilder, VectorParamsBuilder,
 };
-use qdrant_client::Payload;
 use serde_json::json;
-use crate::domain::VectorizedProduct;
-use crate::ports::VectorDatabasePort;
 
 pub struct QdrantVectorDbAdapter {
     client: Qdrant,
@@ -64,7 +64,10 @@ impl VectorDatabasePort for QdrantVectorDbAdapter {
             .upsert_points(UpsertPointsBuilder::new(&self.collection_name, points))
             .await?;
 
-        println!("✅ Successfully indexed {} vectors into Qdrant", items.len());
+        println!(
+            "✅ Successfully indexed {} vectors into Qdrant",
+            items.len()
+        );
         Ok(())
     }
 }

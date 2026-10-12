@@ -24,7 +24,8 @@ async fn main() -> anyhow::Result<()> {
     let mut products: Vec<ScrapedProduct> = Vec::new();
 
     // 1. Scraping execution
-    let tienda_nube_scraper = ECommerceScraper::new("TiendaNube Brand", StoreSelectorConfig::tienda_nube());
+    let tienda_nube_scraper =
+        ECommerceScraper::new("TiendaNube Brand", StoreSelectorConfig::tienda_nube());
     let url_tienda_nube = "https://www.taverniti.com.ar/hombre/buzos";
 
     println!("🔎 Scraping Tienda Nube store: {}...", url_tienda_nube);
@@ -47,17 +48,19 @@ async fn main() -> anyhow::Result<()> {
 
     // 2. Setup Embedding Provider (Bedrock or Local Mock)
     let provider_type = env::var("EMBEDDING_PROVIDER").unwrap_or_else(|_| "mock".to_string());
-    let embedding_adapter: Arc<dyn EmbeddingGeneratorPort> = if provider_type.to_lowercase() == "bedrock" {
-        println!("🧠 Using AWS Bedrock (Titan V2) for vector embeddings...");
-        Arc::new(BedrockEmbeddingAdapter::new().await)
-    } else {
-        println!("🛠️  Using Local Mock Embedding Provider (deterministic)...");
-        Arc::new(LocalMockEmbeddingAdapter)
-    };
+    let embedding_adapter: Arc<dyn EmbeddingGeneratorPort> =
+        if provider_type.to_lowercase() == "bedrock" {
+            println!("🧠 Using AWS Bedrock (Titan V2) for vector embeddings...");
+            Arc::new(BedrockEmbeddingAdapter::new().await)
+        } else {
+            println!("🛠️  Using Local Mock Embedding Provider (deterministic)...");
+            Arc::new(LocalMockEmbeddingAdapter)
+        };
 
     // 3. Vector Database setup
     let qdrant_url = env::var("QDRANT_URL").unwrap_or_else(|_| "http://localhost:6334".to_string());
-    let collection_name = env::var("QDRANT_COLLECTION_NAME").unwrap_or_else(|_| "garments".to_string());
+    let collection_name =
+        env::var("QDRANT_COLLECTION_NAME").unwrap_or_else(|_| "garments".to_string());
 
     let vector_db = QdrantVectorDbAdapter::new(&qdrant_url, &collection_name).await?;
     vector_db.init_schema().await?;
@@ -86,7 +89,10 @@ async fn main() -> anyhow::Result<()> {
     if !vectorized_items.is_empty() {
         println!("\n📦 Ingesting vectorized items into Qdrant...");
         vector_db.upsert_products(&vectorized_items).await?;
-        println!("\n🎉 Pipeline completed! Successfully processed and indexed {} garments.", vectorized_items.len());
+        println!(
+            "\n🎉 Pipeline completed! Successfully processed and indexed {} garments.",
+            vectorized_items.len()
+        );
     } else {
         println!("\n⚠️ No items were vectorized. Skipping database ingestion.");
     }

@@ -1,8 +1,9 @@
-use anyhow::Result;
 use crate::domain::{ScrapedProduct, VectorizedProduct};
+use anyhow::Result;
 
 pub trait ProductStorage {
     fn save_all(&self, products: &[ScrapedProduct]) -> Result<()>;
+    #[allow(dead_code)]
     fn load_all(&self) -> Result<Vec<ScrapedProduct>>;
 }
 
@@ -16,7 +17,7 @@ pub trait EmbeddingGeneratorPort {
 pub trait VectorDatabasePort {
     /// Initializes collection schema if not exists
     async fn init_schema(&self) -> Result<()>;
-    
+
     /// Persists vectorized products to the vector database
     async fn upsert_products(&self, items: &[VectorizedProduct]) -> Result<()>;
 }

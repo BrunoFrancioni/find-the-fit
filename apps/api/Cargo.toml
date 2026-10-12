@@ -4,3 +4,24 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# Web framework & async runtime
+axum = "0.7"
+tokio = { version = "1.0", features = ["full"] }
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+async-trait = "0.1"
+dotenvy = "0.15"
+
+# Vector Database Client
+qdrant-client = "1.10"
+
+# Redis Client
+redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
+
+# AWS Bedrock Runtime SDK
+aws-config = { version = "1.5", features = ["behavior-version-latest"] }
+aws-sdk-bedrockruntime = "1.34"

@@ -66,11 +66,16 @@ impl ECommerceScraper {
         let document = Html::parse_document(&response);
 
         // Compile CSS selectors
-        let card_sel = Selector::parse(self.config.product_card).map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
-        let title_sel = Selector::parse(self.config.title).map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
-        let price_sel = Selector::parse(self.config.price).map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
-        let img_sel = Selector::parse(self.config.image).map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
-        let link_sel = Selector::parse(self.config.link).map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
+        let card_sel = Selector::parse(self.config.product_card)
+            .map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
+        let title_sel = Selector::parse(self.config.title)
+            .map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
+        let price_sel = Selector::parse(self.config.price)
+            .map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
+        let img_sel = Selector::parse(self.config.image)
+            .map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
+        let link_sel = Selector::parse(self.config.link)
+            .map_err(|e| anyhow::anyhow!("Selector error: {:?}", e))?;
 
         let mut products = Vec::new();
 
@@ -109,7 +114,11 @@ impl ECommerceScraper {
 
             if !title.is_empty() && price > 0.0 {
                 products.push(ScrapedProduct {
-                    id: format!("{}-{}", self.store_name.to_lowercase().replace(' ', "-"), products.len() + 1),
+                    id: format!(
+                        "{}-{}",
+                        self.store_name.to_lowercase().replace(' ', "-"),
+                        products.len() + 1
+                    ),
                     title,
                     price,
                     product_url,

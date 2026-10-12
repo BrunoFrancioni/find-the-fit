@@ -103,32 +103,137 @@ find-the-fit/
   - [x] AWS Bedrock integration (`aws-sdk-bedrockruntime`) with exponential backoff retries.
   - [x] Dual-provider architecture: Pluggable AWS Bedrock (`Titan Text Embeddings V2`) and Local Deterministic Mock provider for decoupled local development.
   - [x] Qdrant Vector Database ingestion with Cosine distance indexing (via Docker).
-- [ ] **Phase 3: Search Engine API**
-  - [ ] Rust API implementation with Hybrid Search (Lexical + Vector).
-  - [ ] Redis caching layer for queries.
+- [x] **Phase 3: Search Engine API**
+  - [x] Rust backend API implemented with Axum using Hexagonal Architecture (Ports & Adapters).
+  - [x] Hybrid Search orchestrator prioritizing lexical matches before semantic vector neighbors.
+  - [x] Redis caching layer for queries with TTL to optimize latency and cloud costs.
 - [ ] **Phase 4: Frontend Development**
-  - [ ] Clean Architecture React UI in Next.js.
-  - [ ] Instant search filtering.
+  - [ ] Clean Architecture React UI in Next.js (Domain, Application, Infrastructure, Presentation).
+  - [ ] Instant search bar and responsive product grid.
 - [ ] **Phase 5: Cloud Deployment**
   - [ ] Serverless deployment to AWS Lambda via API Gateway.
   - [ ] Continuous Integration & Continuous Delivery (CI/CD).
 
-## 🛠️ Getting Started (Local Development)
+## 🛠️ Getting Started & Run Order
 
-Prerequisites
+### Prerequisites
+* **Rust** (stable toolchain via `rustup`)
+* **Docker & Docker Compose** (for local datastores)
+* **Node.js** (v20+ recommended) & **npm**
 
-- Rust (latest stable version)
+---
 
-- Node.js (v20+ recommended) & npm / pnpm
+### Step-by-Step Execution Sequence
 
-- Docker (for local databases)
+Follow this order when running the platform locally for the first time:
 
-### Running the Scraper
+#### 1. Start Local Infrastructure
 
-To extract products from configured e-commerce platforms:
+Launch the local **Qdrant Vector Database** and **Redis Cache** containers:
 
-```text
+```bash
+docker compose up -d
+```
+
+* Qdrant REST / Dashboard: http://localhost:6333/dashboard
+
+* Qdrant gRPC: localhost:6334
+
+* Redis: localhost:6379
+
+#### 2. Configure Environment Variables
+
+Ensure a .env file exists in the repository root:
+
+```bash
+EMBEDDING_PROVIDER=mock
+QDRANT_URL=http://localhost:6334
+QDRANT_COLLECTION_NAME=garments
+REDIS_URL=redis://127.0.0.1:6379
+PORT=8080
+```
+
+(Switch EMBEDDING_PROVIDER=bedrock along with AWS credentials when deploying to production).
+
+#### 3. Run Scraping & Vector Indexing Pipeline
+
+Crawl configured store catalogs, generate vector embeddings, and ingest them into Qdrant:
+
+```bash
 cargo run --bin scraper_cli
 ```
 
-Extracted products will be saved to **scraped_products.json**.
+* Scraped items are exported locally to scraped_products.json.
+
+* Embeddings are indexed into the garments collection.
+
+#### 4. Start Backend API
+
+Launch the Axum search server:
+
+```bash
+cargo run --bin api
+```
+
+The server will bind to http://localhost:8080.
+
+#### 5. Start Frontend UI (Phase 4)
+
+From the web application directory:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Open http://localhost:3000 in your browser.
+
+---
+
+### 🧰 Useful Developer Commands
+
+#### Workspace Health & Code Quality
+
+```bash
+# Check compilation across all workspace members
+cargo check --workspace
+
+# Strict lint verification (CI-equivalent, zero warnings)
+cargo clippy --workspace -- -D warnings
+
+# Format all Rust files
+cargo fmt --all
+
+# Run all test suites
+cargo test --workspace
+```
+
+#### Search API Smoke Testing
+
+Evaluate hybrid query responses directly from your terminal:
+
+```bash
+# Test lexical & semantic resolution
+curl -s "http://localhost:8080/api/search?q=buzo" | jq .
+
+# Test regional synonym mapping
+curl -s "http://localhost:8080/api/search?q=hoodie" | jq .
+
+# Verify Redis caching (run the same query twice and inspect the "cached" field)
+curl -s "http://localhost:8080/api/search?q=buzo" | grep -o '"cached":true'
+```
+
+#### Infrastructure Management
+
+```bash
+# Check status of local containers
+docker compose ps
+
+# View real-time container logs
+docker compose logs -f
+
+# Reset local vector and cache storage
+docker compose down -v
+```
+

@@ -21,7 +21,11 @@ impl ProductStorage for JsonFileStorage {
         let json_data = serde_json::to_string_pretty(products)?;
         let mut file = File::create(&self.file_path)?;
         file.write_all(json_data.as_bytes())?;
-        println!("✅ Successfully saved {} products to '{}'", products.len(), self.file_path);
+        println!(
+            "✅ Successfully saved {} products to '{}'",
+            products.len(),
+            self.file_path
+        );
         Ok(())
     }
 
